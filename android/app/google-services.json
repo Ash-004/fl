@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "577427516724",
+    "project_id": "psychetrack-812ce",
+    "storage_bucket": "psychetrack-812ce.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:577427516724:android:725d3a5901cbb34d168961",
+        "android_client_info": {
+          "package_name": "com.example.psychetrack"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "577427516724-ekms9olrhs950me043ful2n3poa8h776.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6orBL3hni4NsdhVYjU0mMHPI0-O0kY5Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "577427516724-ekms9olrhs950me043ful2n3poa8h776.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
