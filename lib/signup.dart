@@ -1,45 +1,46 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:psychetrack/main.dart';
 import 'package:psychetrack/regis.dart';
-import 'package:psychetrack/signup.dart';
-import 'package:basic_utils/basic_utils.dart';
 
-class Mylogin extends StatefulWidget {
-  final VoidCallback onClickedSignUp;
-  const Mylogin({
+class MySignup extends StatefulWidget {
+  final Function() onClickedSignIn;
+  const MySignup({
     Key? key,
-    required this.onClickedSignUp,
+    required this.onClickedSignIn,
   }) : super(key: key);
 
   @override
-  State<Mylogin> createState() => _MyloginState();
+  State<MySignup> createState() => _MySignupState();
 }
 
-class _MyloginState extends State<Mylogin> {
+class _MySignupState extends State<MySignup> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  Color BiscuitOrange = const Color.fromRGBO(240, 174, 131, 1.0);
-
+  final userController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Container(
       color: biscuitGrey,
+      // decoration: const BoxDecoration(
+      //     image: DecorationImage(
+      //         image: AssetImage('assets/home_hero.png'), fit: BoxFit.cover)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Column(children: [
           Container(
             alignment: Alignment.center,
-            padding: const EdgeInsets.only(top: 165),
+            padding: const EdgeInsets.only(top: 160),
             child: const Text(
-              'Welcome, back!',
+              'Hi,there!',
               style: TextStyle(color: Colors.white, fontSize: 20),
             ),
           ),
           Container(
             alignment: Alignment.center,
             child: const Text(
-              'Please Log In',
+              "Let's Get Started",
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 30,
@@ -47,12 +48,25 @@ class _MyloginState extends State<Mylogin> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.only(left: 10, top: 10, right: 20),
+            padding: const EdgeInsets.only(left: 20, top: 40, right: 20),
             child: Column(children: [
+              TextField(
+                controller: userController,
+                decoration: InputDecoration(
+                    hintText: 'Username',
+                    fillColor: const Color.fromARGB(-1, 241, 226, 204),
+                    filled: true,
+                    prefixIcon: const Icon(Icons.key),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(40))),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(
-                    hintText: 'Username',
+                    hintText: 'Email',
                     fillColor: const Color.fromARGB(-1, 241, 226, 204),
                     filled: true,
                     prefixIcon: const Icon(Icons.person),
@@ -68,7 +82,7 @@ class _MyloginState extends State<Mylogin> {
                     hintText: 'Password',
                     fillColor: const Color.fromARGB(-1, 241, 226, 204),
                     filled: true,
-                    prefixIcon: Icon(Icons.key),
+                    prefixIcon: const Icon(Icons.key),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(40))),
               ),
@@ -76,19 +90,16 @@ class _MyloginState extends State<Mylogin> {
                 height: 20,
               ),
               ElevatedButton(
-                  onPressed: signIn,
+                  onPressed: SignUp,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: BiscuitOrange,
+                      backgroundColor: const Color.fromRGBO(240, 174, 131, 1.0),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(40)),
-                      fixedSize: const Size(280, 60)),
-                  child: Text(
-                    'Log in',
+                      fixedSize: const Size(280, 50)),
+                  child: const Text(
+                    'Create an Account',
                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
                   )),
-              const SizedBox(
-                height: 5,
-              ),
               const Divider(
                 color: Colors.orangeAccent,
                 endIndent: 5,
@@ -98,7 +109,7 @@ class _MyloginState extends State<Mylogin> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Click here to register',
+                    'For exsisting users,',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                       fontSize: 16,
@@ -106,14 +117,14 @@ class _MyloginState extends State<Mylogin> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => widget.onClickedSignUp(),
+                    onPressed: () => widget.onClickedSignIn(),
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(40),
                       ),
                     ),
                     child: const Text(
-                      'create an account',
+                      'Login',
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 16,
@@ -124,22 +135,27 @@ class _MyloginState extends State<Mylogin> {
                 ],
               )),
             ]),
-          ),
+          )
         ]),
       ),
     );
   }
 
-  Future signIn() async {
+  Future SignUp() async {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => Center(child: CircularProgressIndicator()),
     );
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: emailController.text.trim(),
-          password: passwordController.text.trim());
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+      addUserDetails(
+        userController.text.trim(),
+        emailController.text.trim(),
+      );
     } on FirebaseAuthException catch (e) {
       print(e);
       final snackBar = SnackBar(
@@ -152,4 +168,11 @@ class _MyloginState extends State<Mylogin> {
     }
     navigatorkey.currentState!.popUntil((route) => route.isFirst);
   }
+}
+
+Future addUserDetails(String username, String email) async {
+  await FirebaseFirestore.instance.collection('users').add({
+    'username': username,
+    'email': email,
+  });
 }
