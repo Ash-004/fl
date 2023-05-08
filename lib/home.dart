@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'chat.dart';
 import 'package:http/http.dart' as http;
 import 'package:psychetrack/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:psychetrack/get_user_name.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -25,6 +24,26 @@ class _HomeState extends State<Home> {
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
+}
+
+Future<String?> getUsernames() async {
+  final usersCollection = FirebaseFirestore.instance.collection('users');
+  final usersSnapshot = await usersCollection.get();
+  final currentUser = FirebaseAuth.instance.currentUser;
+  final email = currentUser?.email;
+
+  String? usernames;
+  for (final userDoc in usersSnapshot.docs) {
+    if (userDoc.exists) {
+      final username = userDoc.data()['username'] as String?;
+      final mail = userDoc.data()['email'] as String?;
+      if (username != null && mail == email) {
+        usernames = username;
+        break;
+      }
+    }
+  }
+  return usernames;
 }
 
 class MyHomePage extends StatefulWidget {
@@ -70,33 +89,29 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  List<String> docIds = [];
-
-  Future getDocId() async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .get()
-        .then((snapshot) => snapshot.docs.forEach((document) {
-              docIds.add(document.reference.id);
-            }));
+  @override
+  String username = "";
+  void getTextFromFile() async {
+    try {
+      String? data = await getUsernames();
+      setState(() {
+        username = data!;
+      });
+    } catch (ex) {
+      print(ex);
+    }
   }
 
-  @override
-  void initState() {
-    getDocId();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
-    _checkServerStatus();
     final List<DateTime> dates = [
       now.subtract(Duration(days: 1)),
       now,
       now.add(Duration(days: 1)),
       now.add(Duration(days: 2)),
     ];
+    getTextFromFile();
+
     return Scaffold(
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -111,10 +126,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       width: MediaQuery.of(context).size.width)),
               Column(
                 children: [
-                  ElevatedButton(
-                    onPressed: () => FirebaseAuth.instance.signOut(),
-                    child: const Text('out'),
-                  ),
                   Container(
                     height: MediaQuery.of(context).size.height / 2.5,
                   ),
@@ -160,8 +171,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8.0),
                                   ),
-                                  child: const Text(
-                                    'BiscuitBobby',
+                                  child: Text(
+                                    username,
                                     style: TextStyle(
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.bold,
